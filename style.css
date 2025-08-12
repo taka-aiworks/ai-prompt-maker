@@ -1,0 +1,129 @@
+/* ============ Base ============ */
+:root{
+  --bg:#f7f8fa;
+  --panel:#ffffff;
+  --ink:#222;
+  --ink-2:#555;
+  --muted:#8aa0b4;
+  --line:#e6ecf2;
+  --brand:#4a90e2;
+  --brand-2:#357ABD;
+  --danger:#e35d6a;
+  --ok:#2fb170;
+  --radius:12px;
+  --shadow:0 2px 8px rgba(18, 26, 36, .06);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  color:var(--ink);
+  background:var(--bg);
+  font:16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
+}
+
+/* ============ Layout ============ */
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+.app-header{
+  background: linear-gradient(90deg, var(--brand), #6fc3df);
+  color:#fff;
+  padding:24px 0;
+  box-shadow: var(--shadow);
+}
+.app-header h1{margin:0;font-size:1.8rem}
+.app-header .sub{margin:.25rem 0 0;opacity:.95}
+
+.app{padding:20px 0}
+.section{
+  background:var(--panel);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+  margin:14px 0;
+}
+.section h2{margin:0 0 10px;font-size:1.1rem}
+.row{display:flex;align-items:center}
+.col{display:flex;flex-direction:column}
+.gap6{gap:6px}.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}
+.wrap-inline{flex-wrap:wrap}
+.space-between{justify-content:space-between}
+.flex-1{flex:1}
+.center{justify-content:center}
+.right{justify-content:flex-end}
+.m0{margin:0}
+
+/* ============ Controls ============ */
+.input, .select, .textarea{
+  width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;
+}
+.textarea{min-height:120px;resize:vertical}
+.label{font-weight:600;margin-bottom:6px;color:var(--ink-2)}
+
+.btn{
+  appearance:none;border:0;border-radius:10px;
+  padding:10px 14px;cursor:pointer;background:var(--brand);color:#fff;
+  transition:.15s transform ease, .15s filter ease;
+}
+.btn:hover{filter:brightness(1.05)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#edf3f8;color:#153651}
+.btn.danger{background:var(--danger)}
+.btn.ok{background:var(--ok)}
+.btn.small{padding:8px 10px;font-size:.9rem;border-radius:9px}
+
+.radio, .check{display:inline-flex;align-items:center;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;
+  background:#eef2f5;border:1px solid #dfe6ee;cursor:pointer;user-select:none;
+}
+.chip input{margin:0}
+
+/* Grid (フォーム) */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-1{grid-template-columns:1fr}
+.grid-full{grid-column:1/-1}
+
+/* ============ Tables (履歴など) ============ */
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:.95rem}
+.table th{color:#3a4a5a;font-weight:700}
+.table .muted{color:var(--muted);font-size:.9rem}
+
+/* ============ Output area ============ */
+.pre{
+  background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px;white-space:pre-wrap;
+  min-height:120px;font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ============ Modal ============ */
+.modal-root{
+  position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;z-index:1000;
+  background:rgba(12,18,28,.45);
+}
+.modal-root.show{display:flex}
+.modal{
+  background:#fff;border-radius:14px;box-shadow:var(--shadow);max-width:900px;width:100%;max-height:85vh;overflow:auto;padding:16px;
+}
+.modal .modal-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.modal .modal-body{display:block}
+.modal .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+/* ============ Toast ============ */
+.toast-root{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:1100}
+.toast{
+  background:#111;color:#fff;padding:10px 14px;margin-top:8px;border-radius:10px;box-shadow:0 6px 22px rgba(0,0,0,.25);
+}
+
+/* ============ Footer ============ */
+.app-footer{padding:24px 0;color:#6b7c8f}
+.app-footer small{opacity:.9}
+
+/* ============ Responsive ============ */
+@media (max-width: 800px){
+  .grid{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr}
+  .wrap{padding:0 14px}
+}
