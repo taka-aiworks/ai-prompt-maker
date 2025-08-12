@@ -54,7 +54,7 @@ const KEY_PRESETS  = "apm_presets_v2";
 
 /* ---------- グローバル状態 ---------- */
 const state = {
-  mode: "single",       // single | character
+  mode: "character",       // single | character
   platform: "general",  // general | sd | mj | dalle
   settings: {
     mj_ar: "3:4",
