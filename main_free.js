@@ -8,7 +8,7 @@
 
 /* ---------- アップグレードURL設定 ---------- */
 // 1) 最終デフォルト（ここを書き換えるのが一番強い）
-const PAID_URL_DEFAULT = "https://example.com/paid";
+const PAID_URL_DEFAULT = "https://note.com/taka_aiworks/n/nf39ac977750d";
 // 2) クエリ (?paid=...) や <body data-paid-url="..."> でも上書き可
 function getPaidUrl(){
   const q = new URLSearchParams(location.search).get("paid");
