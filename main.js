@@ -450,11 +450,6 @@ function applySnapshot(snap){
     if (extras.length && $(`#fld_${name}_free`)) $(`#fld_${name}_free`).value = extras.join(", ");
   };
 
-// --- INSERT: applySnapshot の直後に追加 ---
-function inflateSelections(snap){
-  const sel = snap.selections || {};
-  const pick = a => Array.isArray(a) && a.length ? a[0] : "";
-
   // フラット側が空なら selections から補完（先頭を採用）
   snap.hairColor = snap.hairColor || pick(sel.hairColor);
   snap.hairTone  = snap.hairTone  || pick(sel.hairTone);
@@ -528,6 +523,38 @@ function inflateSelections(snap){
   state.negative = snap.negative || "";
   refreshAll();
   toast("インポートして復元しました");
+}
+
+function applySnapshot(snap){
+  // ...（中略）フォームへの反映処理...
+  toast("インポートして復元しました");
+} // ← ← ← この閉じカッコの“外”に置く
+
+// ここから外側（グローバル）で定義する
+function inflateSelections(snap){
+  const sel = snap.selections || {};
+  const pick = a => Array.isArray(a) && a.length ? a[0] : "";
+  snap.hairColor = snap.hairColor || pick(sel.hairColor);
+  snap.hairTone  = snap.hairTone  || pick(sel.hairTone);
+  snap.hairstyle = snap.hairstyle || pick(sel.hairstyle);
+  snap.hairEmph  = snap.hairEmph  || pick(sel.hairEmph);
+  snap.eyeColor   = snap.eyeColor   || pick(sel.eyeColor);
+  snap.expression = snap.expression || (sel.expression || []);
+  snap.clothing    = snap.clothing    || pick(sel.clothing);
+  snap.accessories = snap.accessories || (sel.accessories || []);
+  snap.faceAngle = snap.faceAngle || pick(sel.faceAngle);
+  snap.gaze      = snap.gaze      || pick(sel.gaze);
+  snap.shot      = snap.shot      || pick(sel.shot);
+  snap.background= snap.background|| pick(sel.background);
+  snap.timeOfDay = snap.timeOfDay || pick(sel.timeOfDay);
+  snap.weather   = snap.weather   || pick(sel.weather);
+  snap.lighting  = snap.lighting  || pick(sel.lighting);
+  snap.colorTone = snap.colorTone || pick(sel.colorTone);
+  snap.pose      = snap.pose      || pick(sel.pose);
+  if (!snap.customTags || !snap.customTags.length) {
+    if (Array.isArray(sel.customTags)) snap.customTags = sel.customTags;
+  }
+  return snap;
 }
 
 /* ---------- 生成 ---------- */
