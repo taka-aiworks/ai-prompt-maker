@@ -1013,10 +1013,22 @@ function showSheetPicker(items){
 async function testGAS(){
   const url = $("#fld_gas_url").value.trim();
   if (!url){ toast("GAS Web App URLを設定してください"); return; }
+
+  // ← 追加：トークンも送る＆本文の ok を見る
+  const token = $("#fld_gas_token").value.trim();
+  const q = new URLSearchParams({ token, limit: 1 });
+
   try{
-    const res = await fetch(url+"?limit=1");
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    toast("GAS接続OK");
+    const res = await fetch(`${url}?${q.toString()}`);
+    const js = await res.json().catch(()=> ({}));
+
+    if (js && js.ok === true){
+      toast("GAS接続OK");
+    }else{
+      // js.error があれば見せる
+      const msg = js && js.error ? `GAS接続失敗: ${js.error}` : "GAS接続失敗: invalid response";
+      toast(msg);
+    }
   }catch(e){
     toast("GAS接続失敗: "+e.message);
   }
