@@ -204,9 +204,11 @@ function json_(obj) {
 
 /**
  * ★ ユーザー操作ポイント
+ * ここ以外のコードは変更しないでください！
+ *
  * 共有トークンを保存
- * - ユーザーは initSetToken() 内の "APM_SHARED_TOKEN" を自分の好きな長い文字列に変更し、
- *   その1回だけ ▶ 実行すればOK
+ * - ユーザーは initSetToken() 内の "APM_SHARED_TOKEN" を
+ *   自分の好きな長い文字列に変更し、その1回だけ ▶ 実行すればOK
  */
 function setSharedToken(token) {
   if (typeof token !== "string" || !token.trim()) {
@@ -217,8 +219,8 @@ function setSharedToken(token) {
 
 /**
  * ★ ユーザー操作ポイント
- * 一度だけ実行するラッパー
- * "APM_SHARED_TOKEN" を変更して ▶ 実行
+ * ここだけ編集します → "APM_SHARED_TOKEN" を変更して ▶ 実行
+ * それ以外は編集不要
  */
 function initSetToken(){
   setSharedToken("APM_SHARED_TOKEN"); // ←ここを好きな長い文字列に変更
