@@ -209,13 +209,22 @@ function renderTopBar(root){
   const left = el("div",{class:"row wrap-inline gap12"},
     el("div",{class:"group"},
       el("div",{class:"label"},"モード"),
-      el("label",{class:"radio"}, el("input",{type:"radio",name:"mode",value:"single",checked:true,onchange:onModeChange}), "一発生成"),
-      el("label",{class:"radio"}, el("input",{type:"radio",name:"mode",value:"character",onchange:onModeChange}), "キャラ統一"),
+      el("label",{class:"radio"}, 
+        el("input",{type:"radio",name:"mode",value:"single",checked:state.mode === "single",onchange:onModeChange}), 
+        "一発生成"
+      ),
+      el("label",{class:"radio"}, 
+        el("input",{type:"radio",name:"mode",value:"character",checked: state.mode === "character",onchange:onModeChange}), 
+        "キャラ統一"
+      ),
     ),
     el("div",{class:"group"},
       el("div",{class:"label"},"出力先"),
       ...[["general","汎用"],["sd","Stable Diffusion"],["mj","Midjourney"],["dalle","DALL·E"]].map(([v,t])=>
-        el("label",{class:"radio"}, el("input",{type:"radio",name:"platform",value:v,checked:v==="general",onchange:onPlatformChange}), t)
+        el("label",{class:"radio"}, 
+          el("input",{type:"radio",name:"platform",value:v,checked:v === state.platform,onchange:onPlatformChange}), 
+          t
+        )
       )
     ),
   );
