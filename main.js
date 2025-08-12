@@ -923,16 +923,33 @@ function showSheetPicker(items){
   openModal(list);
 }
 
-/* ---------- GAS接続テスト ---------- */
+/* ---------- GAS接続テスト（ok:true まで検証） ---------- */
 async function testGAS(){
-  const url = $("#fld_gas_url").value.trim();
-  if (!url){ toast("GAS Web App URLを設定してください"); return; }
+  const baseUrl = $("#fld_gas_url").value.trim();
+  const token   = $("#fld_gas_token").value.trim();
+  if (!baseUrl){ toast("GAS Web App URLを設定してください"); return; }
+
+  // ?limit=1 に token（あれば）を付けて GET
+  const qs = new URLSearchParams({ limit: "1" });
+  if (token) qs.set("token", token);
+
+  let res, data;
   try{
-    const res = await fetch(url+"?limit=1");
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    toast("GAS接続OK");
-  }catch(e){
-    toast("GAS接続失敗: "+e.message);
+    res  = await fetch(`${baseUrl}?${qs.toString()}`);
+    data = await res.json().catch(()=> ({}));
+  }catch(err){
+    console.error(err);
+    toast("接続テスト失敗: ネットワークエラー");
+    return;
+  }
+
+  // 200 でも ok:false ならエラー扱いにする
+  if (res.ok && data && data.ok === true){
+    toast("GAS接続OK（認証も成功）");
+  }else{
+    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+    // トークン不一致などもここでNGにする
+    toast(`GAS接続NG: ${msg}`);
   }
 }
 
