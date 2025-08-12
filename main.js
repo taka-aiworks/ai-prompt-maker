@@ -52,6 +52,25 @@ const KEY_SETTINGS = "apm_settings_v2";
 const KEY_HISTORY  = "apm_history_v2";
 const KEY_PRESETS  = "apm_presets_v2";
 
+// ← 既存のストレージキー定義のすぐ下あたりに追加
+const INIT_FLAG = "apm_init_defaults_v1";
+
+// ラジオを state に合わせて同期（描画後に使う）
+function syncTopBarRadios(){
+  $$('input[name="mode"]').forEach(i => i.checked = (i.value === state.mode));
+  $$('input[name="platform"]').forEach(i => i.checked = (i.value === state.platform));
+}
+
+// 初回だけ既定を強制する（以降は触らない）
+function forceInitialDefaultsOnce(){
+  if (!localStorage.getItem(INIT_FLAG)) {
+    state.mode = "character";
+    state.platform = "general";
+    syncTopBarRadios();       // DOMに反映
+    localStorage.setItem(INIT_FLAG, "1");
+  }
+}
+
 /* ---------- グローバル状態 ---------- */
 const state = {
   mode: "character",       // single | character
@@ -195,13 +214,24 @@ function assembleParts(map){
 function mount(){
   const app = $("#app");
   app.innerHTML = "";
+
+  // 1) まず描画
   renderTopBar(app);
   renderForm(app);
   renderOutput(app);
   renderHistory(app);
   renderSettings(app);
   wireGlobalButtons();
+
+  // 2) その後にストレージ読込（DOMがあるので反映OK）
   loadFromStorage();
+
+  // 3) 初回だけ既定（キャラ統一／汎用）を強制
+  forceInitialDefaultsOnce();
+
+  // 4) 念のため state→ラジオの最終同期
+  syncTopBarRadios();
+
   refreshAll();
 }
 function renderTopBar(root){
