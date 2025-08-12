@@ -209,34 +209,24 @@ function renderTopBar(root){
   const left = el("div",{class:"row wrap-inline gap12"},
     el("div",{class:"group"},
       el("div",{class:"label"},"モード"),
-      el("label",{class:"radio"}, 
-        el("input",{type:"radio",name:"mode",value:"single",checked:state.mode === "single",onchange:onModeChange}), 
-        "一発生成"
-      ),
-      el("label",{class:"radio"}, 
-        el("input",{type:"radio",name:"mode",value:"character",checked: state.mode === "character",onchange:onModeChange}), 
-        "キャラ統一"
-      ),
+      el("label",{class:"radio"},
+        el("input",{type:"radio",name:"mode",value:"single",
+          checked: state.mode === "single", onchange:onModeChange}), "一発生成"),
+      el("label",{class:"radio"},
+        el("input",{type:"radio",name:"mode",value:"character",
+          checked: state.mode === "character", onchange:onModeChange}), "キャラ統一"),
     ),
     el("div",{class:"group"},
       el("div",{class:"label"},"出力先"),
-      ...[["general","汎用"],["sd","Stable Diffusion"],["mj","Midjourney"],["dalle","DALL·E"]].map(([v,t])=>
-        el("label",{class:"radio"}, 
-          el("input",{type:"radio",name:"platform",value:v,checked:v === state.platform,onchange:onPlatformChange}), 
-          t
-        )
-      )
+      ...[["general","汎用"],["sd","Stable Diffusion"],["mj","Midjourney"],["dalle","DALL·E"]]
+        .map(([v,t]) =>
+          el("label",{class:"radio"},
+            el("input",{type:"radio",name:"platform",value:v,
+              checked: v === state.platform, onchange:onPlatformChange}), t))
     ),
   );
-  const right = el("div",{class:"row gap8 right wrap-inline"},
-    el("button",{id:"btnGenerate",class:"btn"}, "プロンプト生成"),
-    el("button",{id:"btnCopyShown",class:"btn ghost"}, "表示中をコピー"),
-    el("button",{id:"btnCopyAll",class:"btn ghost"}, "全部コピー"),
-    el("button",{id:"btnExport",class:"btn"}, "エクスポート"),
-    el("button",{id:"btnImportJson",class:"btn ghost"}, "JSONインポート"),
-    el("button",{id:"btnImportSheet",class:"btn ghost"}, "シートからインポート"),
-  );
-  sec.append(el("div",{class:"row space-between wrap-inline"}, left, right));
+  // 右側は空（操作ボタンは出力ブロックへ）
+  sec.append(el("div",{class:"row space-between wrap-inline"}, left, el("div",{})));
   root.appendChild(sec);
 }
 function renderForm(root){
@@ -256,7 +246,25 @@ function renderForm(root){
 }
 function renderOutput(root){
   const sec = el("section",{class:"section"});
+
+  // 見出し
   sec.appendChild(el("h2",{},"出力"));
+
+  // 操作ツールバー（右寄せ）
+  const tools = el("div",{class:"row space-between wrap-inline", style:"margin:4px 0 12px"},
+    el("div",{class:"muted"},"※ 入力が揃ったら生成してください"),
+    el("div",{class:"row gap8 wrap-inline"},
+      el("button",{id:"btnGenerate",class:"btn"},"プロンプト生成"),
+      el("button",{id:"btnCopyShown",class:"btn ghost"},"表示中をコピー"),
+      el("button",{id:"btnCopyAll",class:"btn ghost"},"全部コピー"),
+      el("button",{id:"btnExport",class:"btn"},"エクスポート"),
+      el("button",{id:"btnImportJson",class:"btn ghost"},"JSONインポート"),
+      el("button",{id:"btnImportSheet",class:"btn ghost"},"シートからインポート"),
+    )
+  );
+  sec.appendChild(tools);
+
+  // 出力グリッド
   const grid = el("div",{class:"grid"});
   grid.append(
     el("div",{}, el("div",{class:"label"},"汎用"), el("div",{id:"out_general",class:"pre"})),
@@ -265,6 +273,7 @@ function renderOutput(root){
     el("div",{}, el("div",{class:"label"},"DALL·E"), el("div",{id:"out_dalle",class:"pre"})),
   );
   sec.appendChild(grid);
+
   root.appendChild(sec);
 }
 function renderHistory(root){
