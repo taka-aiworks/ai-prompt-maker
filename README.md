@@ -1,40 +1,19 @@
-# AI Prompt Generator Web App
+# AI Prompt Maker
 
-This is a web-based prompt generation tool designed for AI image creation workflows.  
-It allows you to input key attributes (character, clothing, colors, styles, etc.) and outputs ready-to-use prompts for major AI platforms.
+日本語で選んで英語プロンプトを自動生成。  
+**JSONエクスポート / Googleスプレッドシート（GAS）保存＆インポート**に対応。
 
-## Features
-- Multi-field prompt customization (hair, eyes, clothing, background, style, etc.)
-- Preset save/load functionality in browser localStorage
-- Tag search for saved prompts
-- Output prompt format switching per platform (e.g., Midjourney, Stable Diffusion, AniFusion)
-- Optional GAS integration for saving prompts to Google Sheets
-- Works entirely in browser; no backend server required
+## デモ
+- GitHub Pages: https://<yourname>.github.io/ai-prompt-maker/
 
-## Directory Structure
+## 使い方
+1. 画面上部で **モード**（一発生成/キャラ統一）と **出力先**（General/SD/MJ/DALL·E）を選択  
+2. 各項目を入力 → **プロンプト生成**  
+3. 必要に応じて **JSONエクスポート** or **スプレッドシートに保存**（設定でGAS URLを入力）
 
-/ (root)
-├── index.html          # Main application HTML
-├── css/
-│   └── style.css       # Stylesheet
-├── js/
-│   └── main.js         # Main app logic
-└── assets/
-└── (images/icons)  # Optional UI images
+## スプレッドシート連携（任意）
+- note の手順に沿って `gas.gs` をApps Scriptへ貼付 → **ウェブアプリでデプロイ**  
+- ツール内の「設定 / 連携」で **GAS Web App URL** と **Shared Token（任意）** を設定
 
-## How to Run Locally
-1. Download or clone this repository.
-2. Open `index.html` in your browser.
-3. No installation required.
-
-## Deploy on GitHub Pages
-1. Fork this repo.
-2. Go to **Settings > Pages**.
-3. Select branch: `main` and root folder `/`.
-4. Your app will be live at: `https://<your-username>.github.io/<repo-name>/`.
-
-## Optional: Link with Google Sheets via GAS
-1. Create a Google Apps Script project.
-2. Paste the provided `.gs` file code.
-3. Deploy as Web App (**accessible to anyone with link**).
-4. Copy the Web App URL and paste into the app’s `GAS Web App URL` field.
+## ライセンス
+MIT
