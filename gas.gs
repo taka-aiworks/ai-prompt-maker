@@ -5,7 +5,7 @@
 
 const SHEET_NAME = "data";
 const PROP_KEY   = "APM_SHEET_ID";
-const REQUIRE_TOKEN = false;        // まずは false で接続確認→OK後に true へ
+const REQUIRE_TOKEN = true;
 
 const HEADERS = [
   "Date", "Name", "Mode",
