@@ -1,14 +1,11 @@
 /**
- * AIキャラ統一プロンプトメーカー - GAS連携（修正版）
- * v1.0.1
- * - CORSヘッダ: setHeader を使用
- * - ステータスコードは返さず JSON の ok で判定
+ * AIキャラ統一プロンプトメーカー - GAS連携（v1.0.2）
+ * - CORSヘッダ・setStatusCode を使わないシンプル版
  */
 
 const SHEET_NAME = "data";
 const PROP_KEY   = "APM_SHEET_ID";
 const REQUIRE_TOKEN = false;        // まずは false で接続確認→OK後に true へ
-const ALLOW_ORIGINS = ["*"];        // 必要なら ["https://your-domain"] のように1件だけ
 
 const HEADERS = [
   "Date", "Name", "Mode",
@@ -17,25 +14,13 @@ const HEADERS = [
   "SelectionsJSON", "SettingsJSON", "RecordID"
 ];
 
-/** CORS付与（TextOutputに1本ずつ setHeader） */
-function withCors_(out) {
-  const origin = (ALLOW_ORIGINS && ALLOW_ORIGINS[0]) || "*";
-  out.setHeader("Access-Control-Allow-Origin", origin);
-  out.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  out.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  return out;
-}
-
-/** シート取得（初回は自動作成＋ヘッダ行） */
 function getSheet_() {
   const props = PropertiesService.getScriptProperties();
   let id = props.getProperty(PROP_KEY);
   let ss = id ? SpreadsheetApp.openById(id) : SpreadsheetApp.create("APM_Prompts");
   if (!id) props.setProperty(PROP_KEY, ss.getId());
-
   let sheet = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
-  const range = sheet.getRange(1, 1, 1, HEADERS.length);
-  const vals = range.getValues()[0];
+  const vals = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
   if (vals.filter(String).length === 0) {
     sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
     sheet.setFrozenRows(1);
@@ -43,21 +28,13 @@ function getSheet_() {
   return sheet;
 }
 
-/** トークン（任意） */
 function checkToken_(token) {
   if (!REQUIRE_TOKEN) return true;
   const saved = PropertiesService.getScriptProperties().getProperty("APM_SHARED_TOKEN") || "";
   return token && saved && token === saved;
 }
 
-/** CORS preflight */
-function doOptions() {
-  const out = ContentService.createTextOutput("");
-  out.setMimeType(ContentService.MimeType.TEXT);
-  return withCors_(out);
-}
-
-/** 保存（POST） */
+/** 受信→保存 */
 function doPost(e) {
   try {
     const p = parsePost_(e);
@@ -86,7 +63,7 @@ function doPost(e) {
   }
 }
 
-/** 取得（GET） */
+/** 一覧取得 */
 function doGet(e) {
   try {
     const q = (e && e.parameter) || {};
@@ -117,23 +94,13 @@ function doGet(e) {
       };
     });
 
-    if (q.name) {
-      const s = String(q.name).toLowerCase();
-      items = items.filter(x => (x.name||"").toLowerCase().indexOf(s) >= 0);
-    }
-    if (q.tag) {
-      const s = String(q.tag).toLowerCase();
-      items = items.filter(x => (x.tags||"").toLowerCase().indexOf(s) >= 0);
-    }
+    if (q.name) { const s = String(q.name).toLowerCase(); items = items.filter(x => (x.name||"").toLowerCase().includes(s)); }
+    if (q.tag)  { const s = String(q.tag ).toLowerCase(); items = items.filter(x => (x.tags||"").toLowerCase().includes(s)); }
     if (q.record_id) items = items.filter(x => x.record_id === q.record_id);
-    if (q.since) {
-      const since = new Date(q.since);
-      if (!isNaN(since)) items = items.filter(x => new Date(x.date) >= since);
-    }
+    if (q.since) { const since = new Date(q.since); if (!isNaN(since)) items = items.filter(x => new Date(x.date) >= since); }
 
     items.sort((a,b)=> new Date(b.date) - new Date(a.date));
-    const limit = Math.max(1, Math.min(Number(q.limit || 50), 500));
-    items = items.slice(0, limit);
+    items = items.slice(0, Math.max(1, Math.min(Number(q.limit || 50), 500)));
 
     return json_({ ok:true, items });
   } catch(err) {
@@ -141,23 +108,20 @@ function doGet(e) {
   }
 }
 
-/** x-www-form-urlencoded / JSON どちらでもOK */
+/** フォーム or JSON どちらでも受ける */
 function parsePost_(e) {
   const p = (e && e.parameter) || {};
   if (e && e.postData && e.postData.type && e.postData.contents) {
     const ct = String(e.postData.type).toLowerCase();
-    if (ct.indexOf("application/json") >= 0) {
-      return JSON.parse(e.postData.contents || "{}");
-    }
+    if (ct.indexOf("application/json") >= 0) return JSON.parse(e.postData.contents || "{}");
   }
   return p;
 }
 
-/** JSON返却（CORS付き） */
+/** JSON返却（200固定） */
 function json_(obj) {
-  const out = ContentService.createTextOutput(JSON.stringify(obj));
-  out.setMimeType(ContentService.MimeType.JSON);
-  return withCors_(out);
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 /** 管理用 */
