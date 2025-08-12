@@ -3,7 +3,23 @@
  * - single固定 / General出力のみ
  * - インポート/エクスポート/GAS/履歴/プリセット 無し
  * - 必須項目のみ入力
+ * - 有料版への導線（URL差し替え簡単設計）
  * =============================== */
+
+/* ---------- アップグレードURL設定 ---------- */
+// 1) 最終デフォルト（ここを書き換えるのが一番強い）
+const PAID_URL_DEFAULT = "https://example.com/paid";
+// 2) クエリ (?paid=...) や <body data-paid-url="..."> でも上書き可
+function getPaidUrl(){
+  const q = new URLSearchParams(location.search).get("paid");
+  const attr = (document.body && document.body.getAttribute("data-paid-url")) || "";
+  return q || attr || PAID_URL_DEFAULT;
+}
+function goUpgrade(newTab=false){
+  const url = getPaidUrl();
+  if (newTab) window.open(url, "_blank", "noopener");
+  else location.href = url;
+}
 
 /* ---------- 小ユーティリティ ---------- */
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -61,6 +77,10 @@ function mount(){
   );
 
   wire();
+  // 初期化時にリンク先を埋め込む（差し替え一括反映）
+  const paid = getPaidUrl();
+  $("#btnUpgrade")?.setAttribute("href", paid);
+  $("#btnUpgrade2")?.setAttribute("href", paid);
 }
 
 /* ---------- UI ---------- */
@@ -78,7 +98,8 @@ function renderTopBar(){
         ),
       ),
       el("div",{class:"row"},
-        el("button",{class:"btn ghost", id:"btnUpgrade"},"すべての機能を見る（有料版）")
+        // aタグにしておくと右クリック新規タブも効く
+        el("a",{class:"btn ghost", id:"btnUpgrade", href:"#", target:"_blank", rel:"noopener"}, "すべての機能を見る（有料版）")
       )
     )
   );
@@ -90,21 +111,13 @@ function renderForm(){
   const grid = el("div",{class:"grid"});
 
   grid.append(
-    // 性別
     fieldRadio("性別","gender", [["girl","女の子"],["boy","男の子"]]),
-    // 髪色
     fieldRadio("髪色 *","hairColor", Object.keys(DICT.hairColor).map(k=>[k,k])),
-    // 髪型
     fieldRadio("髪型 *","hairstyle", Object.keys(DICT.hairstyle).map(k=>[k,k])),
-    // 目の色
     fieldRadio("目の色 *","eyeColor", Object.keys(DICT.eyeColor).map(k=>[k,k])),
-    // 服装
     fieldRadio("服装 *","clothing", Object.keys(DICT.clothing).map(k=>[k,k])),
-    // 顔の角度
     fieldRadio("顔の角度 *","faceAngle", Object.keys(DICT.faceAngle).map(k=>[k,k])),
-    // 視線
     fieldRadio("視線 *","gaze", Object.keys(DICT.gaze).map(k=>[k,k])),
-    // 背景
     fieldRadio("背景 *","background", Object.keys(DICT.background).map(k=>[k,k]))
   );
 
@@ -131,7 +144,7 @@ function renderOutput(){
   const sec = el("section",{class:"section"});
   sec.appendChild(el("h2",{},"出力"));
   const tools = el("div",{class:"row space-between wrap-inline", style:"margin:4px 0 12px"},
-    el("div",{class:"muted"},"※ 入力が揃ったら生成してください"),
+    el("div",{class:"muted"},"※ 入力が揃ったら生成してください（U キーで有料版）"),
     el("div",{class:"row gap8 wrap-inline"},
       el("button",{id:"btnGenerate",class:"btn"},"プロンプト生成"),
       el("button",{id:"btnCopyShown",class:"btn ghost"},"コピー")
@@ -156,7 +169,8 @@ function renderFooterBanner(){
       el("li",{},"カスタムタグ・ネガティブ・LoRA など全入力")
     ),
     el("div",{style:"margin-top:8px"},
-      el("button",{class:"btn", id:"btnUpgrade2"},"アップグレードはこちら")
+      // こちらも aタグに
+      el("a",{class:"btn", id:"btnUpgrade2", href:"#", target:"_blank", rel:"noopener"},"アップグレードはこちら")
     )
   );
   sec.appendChild(box);
@@ -167,12 +181,17 @@ function renderFooterBanner(){
 function wire(){
   $("#btnGenerate").addEventListener("click", onGenerate);
   $("#btnCopyShown").addEventListener("click", copyGeneral);
-  $("#btnUpgrade").addEventListener("click", onUpgrade);
-  $("#btnUpgrade2").addEventListener("click", onUpgrade);
-}
-function onUpgrade(){
-  toast("有料版の案内ページへ遷移（リンク差し替え）");
-  // ここに実リンクを設定：location.href = "YOUR_PAID_PAGE_URL";
+
+  // aタグでもクリック時の保険として
+  $("#btnUpgrade")?.addEventListener("click", (e)=>{ e.preventDefault(); goUpgrade(true); });
+  $("#btnUpgrade2")?.addEventListener("click", (e)=>{ e.preventDefault(); goUpgrade(true); });
+
+  // キーボードショートカット: Uで有料版
+  document.addEventListener("keydown", (e)=>{
+    if (!e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey && (e.key==='u' || e.key==='U')) {
+      goUpgrade(true);
+    }
+  });
 }
 
 /* ---------- 生成 ---------- */
@@ -190,7 +209,6 @@ function onGenerate(){
     return;
   }
 
-  // 値の収集
   const gender    = getRadioValue("fld_gender") || "girl";
   const hairColor = translateToken(DICT.hairColor, getRadioValue("fld_hairColor"));
   const hairstyle = translateToken(DICT.hairstyle, getRadioValue("fld_hairstyle"));
@@ -200,10 +218,8 @@ function onGenerate(){
   const gaze      = translateToken(DICT.gaze,      getRadioValue("fld_gaze"));
   const background= translateToken(DICT.background,getRadioValue("fld_background"));
 
-  // 誰？
   const who = gender === "boy" ? "young man" : "young woman";
 
-  // 並び順（最小）
   const parts = [
     who,
     hairColor && hairColor,
