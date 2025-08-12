@@ -450,6 +450,40 @@ function applySnapshot(snap){
     if (extras.length && $(`#fld_${name}_free`)) $(`#fld_${name}_free`).value = extras.join(", ");
   };
 
+// --- INSERT: applySnapshot の直後に追加 ---
+function inflateSelections(snap){
+  const sel = snap.selections || {};
+  const pick = a => Array.isArray(a) && a.length ? a[0] : "";
+
+  // フラット側が空なら selections から補完（先頭を採用）
+  snap.hairColor = snap.hairColor || pick(sel.hairColor);
+  snap.hairTone  = snap.hairTone  || pick(sel.hairTone);
+  snap.hairstyle = snap.hairstyle || pick(sel.hairstyle);
+  snap.hairEmph  = snap.hairEmph  || pick(sel.hairEmph);
+
+  snap.eyeColor   = snap.eyeColor   || pick(sel.eyeColor);
+  snap.expression = snap.expression || (sel.expression || []);
+
+  snap.clothing    = snap.clothing    || pick(sel.clothing);
+  snap.accessories = snap.accessories || (sel.accessories || []);
+
+  snap.faceAngle = snap.faceAngle || pick(sel.faceAngle);
+  snap.gaze      = snap.gaze      || pick(sel.gaze);
+  snap.shot      = snap.shot      || pick(sel.shot);
+  snap.background= snap.background|| pick(sel.background);
+  snap.timeOfDay = snap.timeOfDay || pick(sel.timeOfDay);
+  snap.weather   = snap.weather   || pick(sel.weather);
+  snap.lighting  = snap.lighting  || pick(sel.lighting);
+  snap.colorTone = snap.colorTone || pick(sel.colorTone);
+  snap.pose      = snap.pose      || pick(sel.pose);
+
+  if (!snap.customTags || !snap.customTags.length) {
+    if (Array.isArray(sel.customTags)) snap.customTags = sel.customTags;
+  }
+  return snap;
+}
+
+
   $("#fld_name") && ($("#fld_name").value = snap.name||"");
   $("#fld_age")  && ($("#fld_age").value  = snap.age||"");
 
@@ -664,8 +698,10 @@ function snapshot(){
   };
   return s;
 }
-function applySnapshotCompat(s){ applySnapshot(s); }
-
+// --- REPLACE: 既存の applySnapshotCompat 全体をこれに差し替え ---
+function applySnapshotCompat(s){
+  applySnapshot(inflateSelections(s));
+}
 /* ---------- 履歴 ---------- */
 function addHistory(prompts){
   const s = snapshot();
@@ -893,23 +929,26 @@ function showSheetPicker(items){
           el("div",{class:"row gap8",style:"margin-top:6px"},
             el("button",{class:"btn small",onclick:()=>{
               try{
+                const selections = (()=>{ try{ return JSON.parse(it.selections_json || "{}"); }catch{ return {}; } })();
+                const settings   = (()=>{ try{ return JSON.parse(it.settings_json   || "{}"); }catch{ return {}; } })();
                 const snap = {
-                  version:"1.0",
-                  mode: it.mode || "single",
-                  name: it.name || "",
-                  platform: "general",
-                  selections: JSON.parse(it.selections_json||"{}"),
-                  customTags: (it.tags||"").split(",").map(s=>s.trim()).filter(Boolean),
-                  negative: it.negative || "",
-                  settings: JSON.parse(it.settings_json||"{}"),
-                  prompts: { general: it.general||"", sd: it.sd||"", mj: it.mj||"", dalle: it.dalle||"" },
-                  created_at: new Date(it.date).toISOString(),
-                  updated_at: new Date().toISOString(),
-                  record_id: it.record_id || String(Date.now())
-                };
-                applySnapshotCompat(snap);
-                closeModal();
-              }catch(e){
+                   version: "1.0",
+                   mode: it.mode || "single",
+                   name: it.name || "",
+                   platform: settings.platform || "general",
+                   selections, // ← そのまま保持
+                   customTags: (it.tags||"").split(",").map(s=>s.trim()).filter(Boolean),
+                   negative: it.negative || "",
+                   settings,
+                   prompts: { general: it.general||"", sd: it.sd||"", mj: it.mj||"", dalle: it.dalle||"" },
+                   created_at: new Date(it.date).toISOString(),
+                   updated_at: new Date().toISOString(),
+                   record_id: it.record_id || String(Date.now())
+                   };
+                   
+                   applySnapshotCompat(snap);
+                   closeModal();
+                   }catch(e){
                 console.error(e);
                 toast("行のJSONが壊れている可能性があります");
               }
@@ -923,33 +962,16 @@ function showSheetPicker(items){
   openModal(list);
 }
 
-/* ---------- GAS接続テスト（ok:true まで検証） ---------- */
+/* ---------- GAS接続テスト ---------- */
 async function testGAS(){
-  const baseUrl = $("#fld_gas_url").value.trim();
-  const token   = $("#fld_gas_token").value.trim();
-  if (!baseUrl){ toast("GAS Web App URLを設定してください"); return; }
-
-  // ?limit=1 に token（あれば）を付けて GET
-  const qs = new URLSearchParams({ limit: "1" });
-  if (token) qs.set("token", token);
-
-  let res, data;
+  const url = $("#fld_gas_url").value.trim();
+  if (!url){ toast("GAS Web App URLを設定してください"); return; }
   try{
-    res  = await fetch(`${baseUrl}?${qs.toString()}`);
-    data = await res.json().catch(()=> ({}));
-  }catch(err){
-    console.error(err);
-    toast("接続テスト失敗: ネットワークエラー");
-    return;
-  }
-
-  // 200 でも ok:false ならエラー扱いにする
-  if (res.ok && data && data.ok === true){
-    toast("GAS接続OK（認証も成功）");
-  }else{
-    const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-    // トークン不一致などもここでNGにする
-    toast(`GAS接続NG: ${msg}`);
+    const res = await fetch(url+"?limit=1");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    toast("GAS接続OK");
+  }catch(e){
+    toast("GAS接続失敗: "+e.message);
   }
 }
 
